@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login — Solomon Prediction</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; }
+    .login { width: min(420px, calc(100% - 32px)); }
+    .login-card { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+    .login-card h1 { font-size: 34px; margin-bottom: 8px; }
+    .login-card p { color: var(--muted); }
+    .error { color: #b42318; font-size: 13px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="login">
+    <div class="login-card">
+      <p class="eyebrow">PRIVATE ACCESS</p>
+      <h1>Admin login</h1>
+      <p>Manage VIP requests and publish predictions.</p>
+      <form id="loginForm">
+        <label>Username<input name="username" required></label>
+        <label>Password<input name="password" type="password" required></label>
+        <button class="button primary" style="width:100%" type="submit">Sign in</button>
+        <div id="error" class="error"></div>
+      </form>
+    </div>
+  </div>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = Object.fromEntries(new FormData(e.target));
+  const r = await fetch("/api/admin/login", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  if (r.ok) location.href = "/admin/dashboard.html";
+  else document.getElementById("error").textContent = (await r.json()).error;
+});
+</script>
+</body>
+</html>

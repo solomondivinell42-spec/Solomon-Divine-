@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard — Solomon Prediction</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .admin-main { max-width: 1200px; margin: auto; padding: 40px 24px; }
+    .admin-header { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:30px; }
+    .admin-grid { display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+    .table-wrap { overflow:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    .status { border-radius:999px; padding:5px 8px; font-size:11px; font-weight:800; }
+    .pending { background:#fff7df; color:#9a6700; }
+    .approved { background:#e8f7ef; color:#11875d; }
+    .rejected { background:#ffeded; color:#b42318; }
+    .actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .small-button { border:1px solid var(--line); background:white; border-radius:8px; padding:7px 9px; cursor:pointer; font-weight:700; }
+    @media(max-width:800px){ .admin-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="brand-mark">SP</div><div><strong>Solomon Prediction</strong><span>Admin dashboard</span></div></div>
+  <button id="logout" class="button secondary">Log out</button>
+</header>
+<main class="admin-main">
+  <div class="admin-header">
+    <div><p class="eyebrow">CONTROL CENTER</p><h2>Manage your platform</h2></div>
+    <a class="button primary" href="/">View website</a>
+  </div>
+  <div class="admin-grid">
+    <section class="card">
+      <p class="eyebrow">PUBLISH</p><h3>Add prediction</h3>
+      <form id="predictionForm">
+        <label>Sport<select name="sport" required><option>Football</option><option>Basketball</option><option>Tennis</option></select></label>
+        <label>Match/title<input name="title" required placeholder="e.g. Lakers vs Celtics"></label>
+        <label>Pick<input name="pick" required placeholder="e.g. Lakers to win"></label>
+        <label>Odds<input name="odds" placeholder="1.50"></label>
+        <label>Confidence<input name="confidence" placeholder="High confidence"></label>
+        <label><input type="checkbox" name="isFree" checked> Free prediction</label>
+        <button class="button primary" type="submit">Publish prediction</button>
+      </form>
+      <div id="predictionMessage" class="form-message"></div>
+    </section>
+    <section class="card">
+      <p class="eyebrow">VIP REQUESTS</p><h3>Payment submissions</h3>
+      <div class="table-wrap"><table><thead><tr><th>Name / plan</th><th>Status</th><th>Screenshot</th><th>Actions</th></tr></thead><tbody id="requests"></tbody></table></div>
+    </section>
+  </div>
+  <section class="card" style="margin-top:20px">
+    <p class="eyebrow">PUBLISHED PICKS</p><h3>Prediction library</h3>
+    <div class="table-wrap"><table><thead><tr><th>Sport</th><th>Title</th><th>Pick</th><th>Type</th><th></th></tr></thead><tbody id="predictionRows"></tbody></table></div>
+  </section>
+</main>
+<script>
+async function ensureAuth() {
+  const r = await fetch("/api/admin/status");
+  const data = await r.json();
+  if (!data.authenticated) location.href = "/admin/login.html";
+}
+async function loadRequests() {
+  const data = await fetch("/api/admin/requests").then(r => r.json());
+  const tbody = document.getElementById("requests");
+  tbody.innerHTML = data.map(x => `
+    <tr>
+      <td><strong>${esc(x.payer_name)}</strong><br><span class="muted">${esc(x.plan)}</span><br><span class="muted">${esc(x.reference || "")}</span></td>
+      <td><span class="status ${x.status}">${x.status}</span><br><small>${x.expires_at ? "Expires " + new Date(x.expires_at).toLocaleDateString() : ""}</small></td>
+      <td>${x.screenshot_path ? `<a class="button secondary" target="_blank" href="${x.screenshot_path}">View</a>` : "—"}</td>
+      <td><div class="actions"><button class="small-button" onclick="setStatus(${x.id}, 'approved')">Approve</button><button class="small-button" onclick="setStatus(${x.id}, 'rejected')">Reject</button></div></td>
+    </tr>`).join("") || '<tr><td colspan="4">No requests yet.</td></tr>';
+}
+async function setStatus(id, status) {
+  await fetch("/api/admin/requests/" + id + "/status", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({status}) });
+  loadRequests();
+}
+async function loadPredictions() {
+  const data = await fetch("/api/predictions").then(r => r.json());
+  document.getElementById("predictionRows").innerHTML = data.map(x => `
+    <tr><td>${esc(x.sport)}</td><td>${esc(x.title)}</td><td>${esc(x.pick)}</td><td>${x.is_free ? "Free" : "VIP"}</td><td><button class="small-button" onclick="deletePrediction(${x.id})">Delete</button></td></tr>
+  `).join("") || '<tr><td colspan="5">No predictions yet.</td></tr>';
+}
+async function deletePrediction(id) {
+  await fetch("/api/admin/predictions/" + id, {method:"DELETE"});
+  loadPredictions();
+}
+function esc(v) { return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[c])); }
+document.getElementById("predictionForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(e.target));
+  data.isFree = e.target.isFree.checked;
+  const r = await fetch("/api/admin/predictions", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)});
+  document.getElementById("predictionMessage").textContent = r.ok ? "Prediction published." : "Could not publish prediction.";
+  if (r.ok) { e.target.reset(); loadPredictions(); }
+});
+document.getElementById("logout").addEventListener("click", async () => {
+  await fetch("/api/admin/logout", {method:"POST"});
+  location.href="/admin/login.html";
+});
+ensureAuth().then(() => { loadRequests(); loadPredictions(); });
+</script>
+</body>
+</html>
