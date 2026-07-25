@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Solomon Prediction</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">SP</div>
+    <div>
+      <strong>Solomon Prediction</strong>
+      <span>Smart sports insights</span>
+    </div>
+  </div>
+  <a class="admin-link" href="/admin/login.html">Admin</a>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <p class="eyebrow">DAILY SPORTS PREDICTIONS</p>
+      <h1>Make every game day more informed.</h1>
+      <p class="hero-copy">Football, basketball and tennis predictions, with free daily picks and VIP access for premium selections.</p>
+      <a class="button primary" href="#predictions">View today's predictions</a>
+    </div>
+    <div class="hero-card">
+      <div class="hero-card-label">Today's focus</div>
+      <div class="hero-stat">3</div>
+      <div class="hero-card-text">sports categories</div>
+      <div class="mini-row"><span>Football</span><span>Basketball</span><span>Tennis</span></div>
+    </div>
+  </section>
+
+  <section id="predictions" class="section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">PREDICTIONS</p>
+        <h2>Today's picks</h2>
+      </div>
+      <div class="filter-row">
+        <button class="filter active" data-filter="all">All</button>
+        <button class="filter" data-filter="Football">Football</button>
+        <button class="filter" data-filter="Basketball">Basketball</button>
+        <button class="filter" data-filter="Tennis">Tennis</button>
+      </div>
+    </div>
+    <div id="predictionGrid" class="prediction-grid"></div>
+  </section>
+
+  <section id="vip" class="section vip-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">PREMIUM ACCESS</p>
+        <h2>Choose your VIP plan</h2>
+      </div>
+      <p class="muted">Payment is reviewed by the admin before VIP access is activated.</p>
+    </div>
+    <div id="planGrid" class="plan-grid"></div>
+  </section>
+
+  <section id="payment" class="section payment-section">
+    <div class="payment-info">
+      <p class="eyebrow">PAYMENT</p>
+      <h2>I've paid</h2>
+      <p>Send payment to the account below, then submit your details for review.</p>
+      <div class="account-box">
+        <div><span>Account name</span><strong id="paymentName"></strong></div>
+        <div><span>Account number</span><strong id="paymentAccount"></strong></div>
+        <div><span>Provider</span><strong id="paymentProvider"></strong></div>
+      </div>
+      <p class="small-note">Never share your banking PIN, OTP or password. Only submit payment confirmation details.</p>
+    </div>
+    <form id="paymentForm" class="form-card" enctype="multipart/form-data">
+      <label>Your name used for payment<input name="payerName" required placeholder="Enter your name"></label>
+      <label>VIP plan<select name="plan" id="planSelect" required></select></label>
+      <label>Payment reference (optional)<input name="reference" placeholder="Transaction reference"></label>
+      <label>Payment screenshot (optional)<input type="file" name="screenshot" accept="image/png,image/jpeg,image/webp"></label>
+      <button class="button primary" type="submit">Submit payment for review</button>
+      <div id="paymentMessage" class="form-message"></div>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <span>© <span id="year"></span> Solomon Prediction</span>
+  <span>Play responsibly. Predictions are not guarantees.</span>
+</footer>
+<script src="/app.js"></script>
+</body>
+                                  </html>
